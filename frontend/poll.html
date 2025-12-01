@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poll - Voting App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <h1>Voting App</h1>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <span id="userName"></span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="poll-container">
+            <div id="pollContent">
+                <!-- Poll will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <script src="api.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const pollId = urlParams.get('id');
+        const token = localStorage.getItem('token');
+
+        if (token) {
+            document.getElementById('userName').textContent = localStorage.getItem('userName') || '';
+        }
+
+        if (!pollId) {
+            document.getElementById('pollContent').innerHTML = '<p class="error">No poll ID provided</p>';
+        } else {
+            loadPoll();
+        }
+
+        async function loadPoll() {
+            try {
+                const poll = await api.getPoll(pollId);
+                displayPoll(poll);
+            } catch (err) {
+                document.getElementById('pollContent').innerHTML = `<p class="error">${err.message}</p>`;
+            }
+        }
+
+        function displayPoll(poll) {
+            const totalVotes = poll.options.reduce((sum, opt) => sum + opt.count, 0);
+            
+            let html = `
+                <h2>${poll.title}</h2>
+                ${poll.description ? `<p class="poll-description">${poll.description}</p>` : ''}
+                <p class="poll-status">${poll.isActive ? '🟢 Active' : '🔴 Closed'} | Total Votes: ${totalVotes}</p>
+            `;
+
+            if (poll.isActive && token) {
+                html += '<form id="voteForm" class="vote-form">';
+                poll.options.forEach((option, idx) => {
+                    html += `
+                        <div class="vote-option">
+                            <input type="radio" id="option${idx}" name="vote" value="${idx}" required>
+                            <label for="option${idx}">${option.text}</label>
+                        </div>
+                    `;
+                });
+                html += '<button type="submit" class="btn btn-primary">Submit Vote</button></form>';
+            } else if (!poll.isActive) {
+                html += '<p class="info">This poll is closed</p>';
+            } else {
+                html += '<p class="info"><a href="login.html">Login</a> to vote</p>';
+            }
+
+            html += '<div class="results"><h3>Results</h3>';
+            poll.options.forEach(option => {
+                const percentage = totalVotes > 0 ? ((option.count / totalVotes) * 100).toFixed(1) : 0;
+                html += `
+                    <div class="result-item">
+                        <div class="result-header">
+                            <span>${option.text}</span>
+                            <span>${option.count} votes (${percentage}%)</span>
+                        </div>
+                        <div class="result-bar">
+                            <div class="result-fill" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            document.getElementById('pollContent').innerHTML = html;
+
+            if (document.getElementById('voteForm')) {
+                document.getElementById('voteForm').addEventListener('submit', handleVote);
+            }
+        }
+
+        async function handleVote(e) {
+            e.preventDefault();
+            const selectedOption = document.querySelector('input[name="vote"]:checked');
+            if (!selectedOption) return;
+
+            try {
+                await api.voteOnPoll(pollId, parseInt(selectedOption.value));
+                alert('Vote submitted successfully!');
+                loadPoll(); // Reload to show updated results
+            } catch (err) {
+                alert(err.message || 'Failed to submit vote');
+            }
+        }
+    </script>
+</body>
+</html>

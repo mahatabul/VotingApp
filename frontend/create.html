@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Poll - Voting App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <h1>Voting App</h1>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="admin.html">My Polls</a>
+                <span id="userName"></span>
+                <a href="#" id="logoutBtn">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="form-container">
+            <h2>Create New Poll</h2>
+            <form id="createPollForm">
+                <div class="form-group">
+                    <label for="title">Poll Title</label>
+                    <input type="text" id="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description (optional)</label>
+                    <textarea id="description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Options (minimum 2)</label>
+                    <div id="optionsContainer">
+                        <input type="text" class="option-input" placeholder="Option 1" required>
+                        <input type="text" class="option-input" placeholder="Option 2" required>
+                    </div>
+                    <button type="button" id="addOptionBtn" class="btn btn-secondary">Add Option</button>
+                </div>
+                <div id="error" class="error"></div>
+                <button type="submit" class="btn btn-primary">Create Poll</button>
+            </form>
+        </div>
+    </main>
+
+    <script src="api.js"></script>
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('userName').textContent = localStorage.getItem('userName') || '';
+
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.href = 'index.html';
+        });
+
+        // Add option functionality
+        document.getElementById('addOptionBtn').addEventListener('click', () => {
+            const container = document.getElementById('optionsContainer');
+            const optionCount = container.querySelectorAll('.option-input').length + 1;
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'option-input';
+            input.placeholder = `Option ${optionCount}`;
+            input.required = true;
+            container.appendChild(input);
+        });
+
+        // Create poll
+        document.getElementById('createPollForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const error = document.getElementById('error');
+            error.textContent = '';
+
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const optionInputs = document.querySelectorAll('.option-input');
+            const options = Array.from(optionInputs)
+                .map(input => input.value.trim())
+                .filter(value => value !== '');
+
+            if (options.length < 2) {
+                error.textContent = 'Please provide at least 2 options';
+                return;
+            }
+
+            try {
+                await api.createPoll(title, description, options);
+                alert('Poll created successfully!');
+                window.location.href = 'admin.html';
+            } catch (err) {
+                error.textContent = err.message || 'Failed to create poll';
+            }
+        });
+    </script>
+</body>
+</html>

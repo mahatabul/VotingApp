@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Polls - Voting App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <h1>Voting App</h1>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="create.html">Create Poll</a>
+                <span id="userName"></span>
+                <a href="#" id="logoutBtn">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h2>My Polls</h2>
+        <div id="myPollsList" class="polls-grid">
+            <!-- User's polls will be loaded here -->
+        </div>
+    </main>
+
+    <script src="api.js"></script>
+    <script>
+        // Check authentication
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('userName').textContent = localStorage.getItem('userName') || '';
+
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.href = 'index.html';
+        });
+
+        loadMyPolls();
+
+        async function loadMyPolls() {
+            try {
+                const data = await api.getMyPolls();
+                displayMyPolls(data.Polls);
+            } catch (err) {
+                document.getElementById('myPollsList').innerHTML = `<p class="error">${err.message}</p>`;
+            }
+        }
+
+        function displayMyPolls(polls) {
+            if (!polls || polls.length === 0) {
+                document.getElementById('myPollsList').innerHTML = '<p>You haven\'t created any polls yet. <a href="create.html">Create one now</a></p>';
+                return;
+            }
+
+            const html = polls.map(poll => {
+                const totalVotes = poll.options.reduce((sum, opt) => sum + opt.count, 0);
+                return `
+                    <div class="poll-card">
+                        <h3>${poll.title}</h3>
+                        <p class="poll-meta">
+                            ${poll.isActive ? '🟢 Active' : '🔴 Closed'} | 
+                            ${totalVotes} votes | 
+                            ${poll.options.length} options
+                        </p>
+                        <div class="poll-actions">
+                            <a href="poll.html?id=${poll._id}" class="btn btn-secondary">View</a>
+                            ${poll.isActive ? `<button onclick="closePoll('${poll._id}')" class="btn btn-danger">Close Poll</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('myPollsList').innerHTML = html;
+        }
+
+        async function closePoll(pollId) {
+            if (!confirm('Are you sure you want to close this poll? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                await api.closePoll(pollId);
+                alert('Poll closed successfully');
+                loadMyPolls();
+            } catch (err) {
+                alert(err.message || 'Failed to close poll');
+            }
+        }
+    </script>
+</body>
+</html>
