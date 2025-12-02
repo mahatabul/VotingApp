@@ -2,6 +2,20 @@
 
 A full-stack web application for creating and managing polls with real-time voting capabilities. Built with Node.js, Express, MongoDB, and vanilla JavaScript.
 
+## 📸 Screenshots
+
+### Home Page
+![Home Page](Screenshot/ss1.png)
+
+### Poll View
+![Poll View](Screenshot/ss4.png)
+
+### Create Poll
+![Create Poll](Screenshot/ss3.png)
+
+### Vote Poll
+![Vote Poll](Screenshot/ss2.png)
+
 ## ✨ Features
 
 - 🔐 **User Authentication** - Secure registration and login with JWT
@@ -38,8 +52,8 @@ Before you begin, ensure you have the following installed:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/voting-app.git
-   cd voting-app
+   git clone https://github.com/mahatabul/VotingApp.git
+   cd VotingApp
    ```
 
 2. **Install dependencies**
@@ -222,7 +236,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👤 Author
 
-**Your Name**
+**Mahatabul Islam**
 - GitHub: [@mahatabul](https://github.com/mahatabul)
 - Email: rozinislam2002@gmail.com
 
@@ -233,18 +247,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - JWT best practices
 - Node.js community
 
-## 📸 Screenshots
-
-### Home Page
-![Home Page](screenshots/home.png)
-
-### Poll View
-![Poll View](screenshots/poll.png)
-
-### Create Poll
-![Create Poll](screenshots/create.png)
-
----
 
 ⭐ If you found this project helpful, please give it a star!
 
